@@ -3,8 +3,10 @@
 
 import this
 from random import randint
+from shutil import move
 
 import pgzrun
+from pygame.mixer import music
 
 WIDTH = 800
 HEIGHT = 600
@@ -55,6 +57,21 @@ def draw():
         left.draw()
         screen.draw.text("score: " + str(score), color="black", topleft=(10, 10))
 
+        if say_dance:
+            screen.draw.text(
+                "Dance!", color="black", topleft=(CENTRE_X - 65, 150), fontsize=60
+            )
+        if show_countdown:
+            screen.draw.text(
+                str(count), color="black", topleft=(CENTRE_X - 8, 150), fontsize=60
+            )
+    else:
+        screen.clear()
+        screen.blit("stage", (0, 0))
+        screen.draw.text("Score: " + str(score), color="black", topleft=(10, 10))
+        screen.draw.text(
+            "Game Over!", color="black", topleft=(CENTRE_X - 130, 220), fontsize=60
+        )
     return
 
 
@@ -123,32 +140,94 @@ def display_moves():
 
 
 def generate_moves():
-    pass
+    global move_list, dance_length, count
+    global show_countdown, say_dance
+    count = 4
+    move_list = []
+    say_dance = False
+    for move in range(0, dance_length):
+        rand_move = randint(0, 3)
+        move_list.append(rand_move)
+        display_list.append(rand_move)
+    show_countdown = True
+    countdown()
+    return
 
 
 def countdown():
-    pass
+    global count, game_over, show_countdown
+    if count > 1:
+        count -= 1
+        clock.schedule(countdown, 1)
+    else:
+        show_countdown = False
+        display_moves()
 
 
 def next_move():
-    pass
+    global dance_length, current_move, moves_complete
+    if current_move < dance_length - 1:
+        current_move += 1
+
+    else:
+        moves_complete = True
+
+    return
 
 
 def on_key_up(key):
     global score, game_over, move_list, current_move
     if key == keys.UP:
         update_dancer(0)
+        if move_list[current_move] == 0:
+            score += 1
+            next_move()
+        else:
+            game_over = True
+
     elif key == keys.RIGHT:
         update_dancer(1)
+        if move_list[current_move] == 1:
+            score += 1
+            next_move()
+        else:
+            game_over = True
+
     elif key == keys.DOWN:
         update_dancer(2)
+        if move_list[current_move] == 2:
+            score += 1
+            next_move()
+        else:
+            game_over = True
+
     elif key == keys.LEFT:
         update_dancer(3)
+        if move_list[current_move] == 3:
+            score += 1
+            next_move()
+        else:
+            game_over = True
+
     return
 
 
+generate_moves()
+
+# music.play("vanishing-horizon")
+
+
 def update():
-    pass
+    global game_over, current_move, moves_complete
+    if not game_over:
+        if moves_complete:
+            generate_moves()
+            moves_complete = False
+            current_move = 0
+
+    else:
+        music.stop()
+    return
 
 
 pgzrun.go()
